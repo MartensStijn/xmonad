@@ -1,15 +1,15 @@
-name: xmonad-atif
-version: 0.16
+name: xmonad-noctis
+version: 0.17
 synopsis: My xmonad configuration.
 license: MIT
-author: Atif
-homepage: https://github.com/AtifChy/xmonad
+author: Noctis
+homepage: https://github.com/MartensStijn/xmonad
 
 ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -O2 -j -dynamic
 
 dependencies:
   - base
-  - xmonad-contrib >= 0.16
+  - xmonad-contrib >= 0.17
 
 source-dirs: src
 

@@ -4,12 +4,12 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           xmonad-atif
-version:        0.16
+name:           xmonad-noctis
+version:        0.17
 synopsis:       My xmonad configuration.
-homepage:       https://github.com/AtifChy/xmonad
-author:         Atif
-maintainer:     Atif
+homepage:       https://github.com/MartensStijn/xmonad
+author:         Noctis
+maintainer:     Noctis
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
@@ -19,14 +19,14 @@ executable xmobar
   other-modules:
       Theme.Theme
       Theme.Xresources
-      Paths_xmonad_atif
+      Paths_xmonad_noctis
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -O2 -j -dynamic -rtsopts -threaded -with-rtsopts=-N
   build-depends:
       base
     , xmobar
-    , xmonad-contrib >=0.16
+    , xmonad-contrib >=0.17
   default-language: Haskell2010
 
 executable xmonad
@@ -34,7 +34,7 @@ executable xmonad
   other-modules:
       Theme.Theme
       Theme.Xresources
-      Paths_xmonad_atif
+      Paths_xmonad_noctis
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -O2 -j -dynamic
@@ -43,5 +43,5 @@ executable xmonad
     , base
     , containers
     , xmonad
-    , xmonad-contrib >=0.16
+    , xmonad-contrib >=0.17
   default-language: Haskell2010

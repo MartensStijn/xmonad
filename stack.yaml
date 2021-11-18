@@ -42,32 +42,33 @@ packages:
 #
 extra-deps:
   - github: xmonad/x11
-    commit: 8df5483b0801860ee267441f31e35647d0389c37
+    commit: a5e89e6900ba33d9e7bb5052893985edf1c02c71
   - github: xmonad/xmonad
-    commit: aa18707c3ef96db88208509c2a18c6670e831661
+    commit: 7fab71f5f0a1fe5ce957ab747b182794eaf3b33a
   - github: xmonad/xmonad-contrib
-    commit: 04713d2e9c0d2a42b69df3e6024ad419da0700bf
-  - xmobar-0.39
+    commit: 0fde4c88483c481604c85bc12013cf0828066383
+  - xmobar-0.40
 
 # Override default flag values for local packages and extra-deps
 flags:
   # not sure about what xmobar flag to enable?
   # check this page https://github.com/jaor/xmobar/blob/master/doc/compiling.org#optional-features
   xmobar:
-    with_xpm: true
-    with_threaded: true
-    with_xft: true
-    with_rtsopts: true
-    with_alsa: false
-    with_mpd: false
-    with_weather: false
     with_dbus: false
+    with_threaded: true
+    with_rtsopts: true
+    with_utf8: false
+    with_xft: true
+    with_mpd: false
     with_mpris: false
     with_inotify: false
     with_nl80211: false
     with_iwlib: false
+    with_alsa: false
     with_datezone: false
+    with_xpm: true
     with_uvmeter: false
+    with_weather: false
     with_kraken: false
 #
 # Extra package databases containing global packages

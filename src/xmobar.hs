@@ -1,165 +1,163 @@
-{-# LANGUAGE PostfixOperators #-}
-
-import           System.Environment        (getEnv)
-import           System.IO.Unsafe          (unsafeDupablePerformIO)
-import           Theme.Theme               (base00, base01, base02, base03,
-                                            base04, base05, base06, base07,
-                                            basebg, basefg, myFont)
-import           XMonad.Hooks.StatusBar.PP (wrap, xmobarAction, xmobarColor,
-                                            xmobarFont)
 import           Xmobar
 
--- | Configures how things should be displayed on the bar
-config :: Config
-config =
-  defaultConfig
-    { font =
-        concatMap
-          fontWrap
-          [ myFont
-          , "Noto Sans:size=10:style=Bold"
-          , "Noto Sans Bengali:size=10:style=Bold"
-          , "Noto Sans Arabic:size=10:style=Bold"
-          , "Noto Color Emoji:size=10:style=Regular"
-          , "Noto Sans CJK JP:size=10:style=Bold"
-          , "Noto Sans CJK KR:size=10:style=Bold"
-          ]
-    , additionalFonts =
-        [ "xft:Font Awesome 5 Free Solid:size=10"
-        , "xft:JetBrainsMono Nerd Font:size=14"
-        , "xft:Font Awesome 5 Brands:size=11"
-        , "xft:file\\-icons:size=11"
-        , "xft:JetBrainsMono Nerd Font:size=11"
-        ]
-    , textOffset = 20
-    , textOffsets = [20, 21, 20, 21, 20]
-    , bgColor = basebg
-    , fgColor = basefg
-    , borderColor = base00
-    , border = FullB
-    , position = Static{xpos = 0, ypos = 0, width = 1920, height = 30}
-    , alpha = 255
-    , lowerOnStart = True
-    , hideOnStart = False
-    , persistent = True
-    , overrideRedirect = False
-    , iconRoot = homeDir <> "/.config/xmonad/icons"
-    , iconOffset = -1
-    , commands = myCommands
-    , sepChar = "%"
-    , alignSep = "}{"
-    , template =
-        wrap " " " " "%hasIcon%"
-          <> inWrapper "%UnsafeXMonadLog%"
-          <> wrap "}" "{" (inWrapper' (white "%playerctl%"))
-          <> concatMap
-            inWrapper
-            [ red "%wttr%"
-            , cpuAction "%cpu%"
-            , memoryAction "%memory%"
-            , volAction (white "%volwire%")
-            , dateAction "%date%"
-            , "%tray%"
-            ]
-    }
- where
-  fontWrap :: String -> String
-  fontWrap = wrap "" ","
+import           System.Environment
 
-  inWrapper :: String -> String
-  inWrapper =
-    wrap
-      (xmobarColor base00 "" (xmobarFont 5 "\xe0b6"))
-      (xmobarColor base00 "" (xmobarFont 5 "\xe0b4") <> " ")
 
-  inWrapper' :: String -> String
-  inWrapper' =
-    wrap
-      (xmobarColor base00 "" (xmobarFont 5 "\xe0b6"))
-      (xmobarColor base00 "" (xmobarFont 5 "\xe0b4"))
+baseConfig :: Config
+baseConfig = defaultConfig
+  { font             =
+    "xft:Source Code Pro:size=11:regular:antialias=true,FontAwesome:pixelsize=13"
+  , overrideRedirect = False
+  , lowerOnStart     = True
+  , iconRoot         = "/home/yecinem/xmobarrc/xpm"
+  , bgColor          = "#00192A"
+  , fgColor          = "#D8DEE9"
+  , sepChar          = "%"
+  , alignSep         = "}{"
+  }
 
-  cpuAction, memoryAction, dateAction, volAction :: ShowS
-  cpuAction x = xmobarAction "pgrep -x htop || st -e htop -s PERCENT_CPU" "1" x
-  memoryAction x = xmobarAction "pgrep -x htop || st -e htop -s PERCENT_MEM" "1" x
-  dateAction x = xmobarAction "~/.config/xmonad/scripts/date.sh" "1" x
-  volAction x =
-    xmobarAction "pamixer -t" "1" $
-      xmobarAction "st -e pulsemixer" "3" $
-        xmobarAction "[ $(pamixer --get-volume) -lt 200 ] && pamixer --allow-boost -u -i 5" "4" $
-          xmobarAction "pamixer --allow-boost -u -d 5" "5" x
+config :: Int -> Config
+config i = baseConfig
+  { commands = myCommands
+  , position = OnScreen i (TopSize L 100 30)
+  , template =
+    " "
+    <> styleUp (haskellIcon <> " %UnsafeXMonadLog%")
+    <> "}{"
+    <> concatMap styleUp
+                 ["%date%", "%cpu%", "%memory%", "%battery%", "%trayerpad%"]
+    <> " "
+  }
 
--- Custom module
-data HasIcon = HasIcon deriving (Read, Show)
 
-instance Exec HasIcon where
-  alias _ = "hasIcon"
-  run _ = return $ xmobarAction "xdotool key super+p" "1" $ darkPurple $ xmobarFont 2 "\xe61f"
 
--- | Commands to run xmobar modules on start
+secondary :: Int -> Config
+secondary i = baseConfig
+  { template =
+    " <icon=circle_left.xpm/><icon=haskell.xpm/><fc=#D8DEE9,#2E3440:0> %"
+    <> customProp
+    <> "%</fc><icon=circle_right.xpm/>}{"
+  , position = OnScreen i (TopSize L 100 30)
+  , commands = [Run $ UnsafeXPropertyLog customProp]
+  }
+  where customProp = "_XMONAD_LOG__Secondary_" <> show i
+styleUp :: String -> String
+styleUp =
+  wrap (" " <> leftIcon) (rightIcon <> " ") . xmobarColor "#D8DEE9" "#2E3440:0"
+
+
+rightIcon, leftIcon, haskellIcon :: String
+[rightIcon, leftIcon, haskellIcon] = map icon ["right", "left", "haskell"]
+
+
+icon :: String -> String
+icon = wrap "<icon=" ".xpm/>"
+
 myCommands :: [Runnable]
 myCommands =
-  [ Run UnsafeXMonadLog
-  , Run HasIcon
-  , Run $ Cpu
-    [ "-t"
-    , cyan (xmobarFont 1 "\xf108" <> " <total>%")
-    , "-L"
-    , "50"
-    , "-H"
-    , "85"
-    , "--low"
-    , base02 <> "," <> background
-    , "--normal"
-    , base03 <> "," <> background
+  [ Run $ Cpu
+    [ "--template"
+    , "<ipat><total>%"
+    , "--Low"
+    , "55"      -- units: %
+    , "--High"
+    , "77"      -- units: %
+                 -- , "--low"      , "#26734D"
+                 -- , "--normal"   , "#CC5200"
     , "--high"
-    , base01 <> "," <> background
+    , foreground "#CD3C66"
+    , "--ppad"
+    , "3"
+    , "--width"
+    , "3"
+    , "--maxtwidth"
+    , "4"
+    , "--"
+    , "--load-icon-pattern"
+    , "<icon=cpu_%%.xpm/>"
     ]
-    (2 `seconds`)
+    10
   , Run $ Memory
-    [ "-t"
-    , purple (xmobarFont 1 "\xf538" <> " <usedratio>%")
-    , "-L"
-    , "50"
-    , "-H"
-    , "85"
-    , "--low"
-    , base02 <> "," <> background
-    , "--normal"
-    , base03 <> "," <> background
+    [ "--template"
+    , "<usedipat><usedratio>%"
+    , "--Low"
+    , "55"      -- units: %
+    , "--High"
+    , "77"      -- units: %
     , "--high"
-    , base01 <> "," <> background
+    , foreground "#BF616A"
+    , "--ppad"
+    , "3"
+    , "--width"
+    , "3"
+    , "--maxtwidth"
+    , "4"
+    , "--"
+    , "--used-icon-pattern"
+    , "<icon=ram_%%.xpm/>"
     ]
-    (3 `seconds`)
-  , Run $ Date (blue $ xmobarFont 1 "\xf017" <> " %l:%M %p") "date" (30 `seconds`)
-  , Run $ CommandReader ("exec " <> homeDir <> "/.config/xmonad/scripts/volume.sh") "volwire"
-  , Run $ CommandReader ("exec " <> homeDir <> "/.config/xmonad/scripts/playerctl.sh") "playerctl"
-  , Run $ CommandReader ("exec " <> homeDir <> "/.config/xmonad/scripts/weather.sh bar") "wttr"
-  , Run $ Com (homeDir <> "/.config/xmonad/scripts/tray-padding-icon.sh") ["stalonetray"] "tray" 5
+    10
+  , Run $ Date "%a %b %_d | %H:%M" "date" 10
+  , Run $ Battery
+    [ "--template"
+    , "<fc=#D8DEE9,#2E3440:0><leftipat><left>%<timeleft></fc>"
+    , "--Low"
+    , "20"      -- units: %
+    , "--High"
+    , "90"      -- units: %
+    , "--low"
+    , foreground "#BF616A"
+    , "--normal"
+    , foreground "#D8DEE9"
+    , "--high"
+    , foreground "#A3BE8C"
+    , "--maxtwidth"
+    , "10"
+    , "--"
+    , "--on-icon-pattern"
+    , "<icon=battery_on_%%.xpm/>"
+    , "--off-icon-pattern"
+    , "<icon=battery_off_%%.xpm/>"
+    , "--idle-icon-pattern"
+    , "<icon=battery_idle_%%.xpm/>"
+    , "-A"
+    , "15"
+    , "-a"
+    , "notify-send -u critical 'Battery running out!'"
+    ]
+    50
+  , Run UnsafeXMonadLog
+  , Run $ Com "/home/yecinem/xmobarrc/trayer-padding-icon.sh" [] "trayerpad" 10
   ]
-  where
-    -- Convenience functions
-    seconds :: Int -> Int
-    seconds = (* 10)
-    -- minutes = (60 *). seconds
 
--- | Get home directory
-homeDir :: String
-homeDir = unsafeDupablePerformIO (getEnv "HOME")
 
--- Colors
-background :: String
-background = base00 <> ":5"
-
-red, blue, cyan, purple, white, darkPurple :: String -> String
-red = xmobarColor base01 background
-blue = xmobarColor base04 background
--- green = xmobarColor base02 background
-cyan = xmobarColor base06 background
--- yellow = xmobarColor base03 background
-purple = xmobarColor base05 background
--- gray = xmobarColor "#7a869f" background
-white = xmobarColor base07 background
-darkPurple = xmobarColor "#7b6f9c" ""
+foreground :: String -> String
+foreground =  (<> ",#2E3440:0")
 
 main :: IO ()
-main = xmobar config
+main = do
+  xs <- getArgs
+  case xs of
+    [n] -> xmobar $ config (read n)
+    _   -> xmobar $ config 0
+
+-- Stolen from XMonad
+
+-- | Use xmobar escape codes to output a string with given foreground
+--   and background colors.
+xmobarColor
+  :: String  -- ^ foreground color: a color name, or #rrggbb format
+  -> String  -- ^ background color
+  -> String  -- ^ output string
+  -> String
+xmobarColor fg bg = wrap t "</fc>"
+  where t = concat ["<fc=", fg, if null bg then "" else "," ++ bg, ">"]
+
+-- | Wrap a string in delimiters, unless it is empty.
+wrap
+  :: String  -- ^ left delimiter
+  -> String  -- ^ right delimiter
+  -> String  -- ^ output string
+  -> String
+wrap _ _ "" = ""
+wrap l r m  = l ++ m ++ r
